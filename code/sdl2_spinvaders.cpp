@@ -321,6 +321,13 @@ uint64_t get_performance_freq() {
 #define DELTA_TIME_SNAP_FREQS 4
 
 int main(int argc, char *argv[]) {
+  FILE *log_file = fopen("spinvaders_log.txt", "a");
+  if (log_file) {
+    adc_log_add_fp(log_file, ADC_LOG_INFO);
+  } else {
+    adc_log_warn("Failed to open log file");
+  }
+
   if (sdl2_setup() != 0) {
     adc_log_error("Failed to setup SDL2 platform!");
     return sdl2_shutdown(EXIT_FAILURE);

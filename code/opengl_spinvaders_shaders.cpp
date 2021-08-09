@@ -242,9 +242,11 @@ static int compile_shader_program(OpenGLShader *shader_data, const char *name, c
   const GLsizei length = 64;
   GLint count;
   char uniform_name[length];
+  GLint size;
+  GLenum type;
   glGetProgramiv(shader_data->program, GL_ACTIVE_UNIFORMS, &count);
   for (int i = 0; i < count; i++) {
-    glGetActiveUniform(shader_data->program, (GLuint)i, length, nullptr, nullptr, nullptr,
+    glGetActiveUniform(shader_data->program, (GLuint)i, length, nullptr, &size, &type,
                        uniform_name);
     shader_data->uniform_locations[std::string(uniform_name)] =
         glGetUniformLocation(shader_data->program, uniform_name);

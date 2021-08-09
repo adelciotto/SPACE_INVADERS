@@ -1,27 +1,22 @@
-# Windows, TODO!
-ifeq ($(OS), Windows_NT)
-else
-	uname_s := $(shell uname -s)
+uname_s := $(shell uname -s)
+# OSX
+ifeq ($(uname_s), Darwin)
+	# External library headers
+	sdl_dev_inc := ./external/osx/Library/Frameworks/SDL2.framework/Headers
+	sdlmix_dev_inc := ./external/osx/Library/Frameworks/SDL2_mixer.framework/Headers
 
-	# OSX
-	ifeq ($(uname_s), Darwin)
-		# External library headers
-		sdl_dev_inc := ./external/osx/Library/Frameworks/SDL2.framework/Headers
-		sdlmix_dev_inc := ./external/osx/Library/Frameworks/SDL2_mixer.framework/Headers
+	# Target executable
+	target := space_invaders
 
-		# Target executable
-		target := space_invaders
+	# Library flags
+	lib_flags := -Wl,-rpath,@executable_path/./Library/Frameworks -F./external/osx/Library/Frameworks \
+				 -framework OpenGL -framework SDL2 -framework SDL2_mixer
 
-		# Library flags
-		lib_flags := -Wl,-rpath,@executable_path/./Library/Frameworks -F./external/osx/Library/Frameworks \
-					 -framework OpenGL -framework SDL2 -framework SDL2_mixer
-
-		# Distribution
-		dist_name := space_invaders-osx
-		dist_deps := ./external/osx/Library
-	# Linux, TODO!
-	else ifeq ($(uname_s, Linux))
-	endif
+	# Distribution
+	dist_name := space_invaders-osx
+	dist_deps := ./external/osx/Library
+# Linux, TODO!
+else ifeq ($(uname_s, Linux))
 endif
 
 # Source files

@@ -6,6 +6,12 @@ A Space Invaders arcade emulator written in C++. Still a WIP!
 
 # Build from source
 
+First ensure that the space invaders rom files are in the data directory. The following files are required:
+* invaders.e
+* invaders.f
+* invaders.g
+* invaders.h
+
 Clone the repository:
 
 ```shell
@@ -23,7 +29,23 @@ make -j4
 
 ## Windows
 
-TODO!
+Ensure you have the latest Visual Studio installed and that you have run vcvars64.bat in your current command line session. The scripts/shell.bat script will attempt to run this for you assuming you have Visual Studio 2019 Community installed. If you have another version installed then just modify the script to point to the right location.
+
+```batch
+scripts\shell.bat
+```
+
+Compile the code:
+
+```batch
+scripts\windows_build.bat
+```
+
+Run the executable:
+
+```batch
+release\space_invaders.exe
+```
 
 ## Linux
 

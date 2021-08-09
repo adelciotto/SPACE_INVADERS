@@ -44,6 +44,7 @@ int renderer_setup() {
   // Setup the shaders.
   if (opengl_shaders_setup(&s_renderer.shader_ctx) != 0) {
     adc_log_error("Failed to setup the OpenGL shaders");
+    return -1;
   }
 
   // Setup the ortho projection matrix.

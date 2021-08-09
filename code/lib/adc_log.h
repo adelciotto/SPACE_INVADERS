@@ -35,14 +35,14 @@
 extern "C" {
 #endif
 
-#include <stdarg.h>  // For va_start, va_end
-#include <stdio.h>   // For vfprintf, fprintf, fflush
-#include <time.h>    // For time, localtime
+#include <stdarg.h> // For va_start, va_end
+#include <stdio.h>  // For vfprintf, fprintf, fflush
+#include <time.h>   // For time, localtime
 
-// 0.1.0
+// 0.1.1
 #define ADC_LOG_VERSION_MAJOR 0
 #define ADC_LOG_VERSION_MINOR 1
-#define ADC_LOG_VERSION_PATCH 0
+#define ADC_LOG_VERSION_PATCH 1
 
 // Allow overriding of MAX_CALLBACKS.
 #ifndef ADC_LOG_MAX_CALLBACKS
@@ -71,13 +71,13 @@ typedef void (*adc_log_lock_handler)(int lock, void *userdata);
 typedef void (*adc_log_log_handler)(adc_log_msg *msg);
 
 // Log macros
-#define adc_log_debug(...) \
+#define adc_log_debug(...)                                                     \
   adc__log(ADC_LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
-#define adc_log_info(...) \
+#define adc_log_info(...)                                                      \
   adc__log(ADC_LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
-#define adc_log_warn(...) \
+#define adc_log_warn(...)                                                      \
   adc__log(ADC_LOG_WARN, __FILE__, __LINE__, __VA_ARGS__)
-#define adc_log_error(...) \
+#define adc_log_error(...)                                                     \
   adc__log(ADC_LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
 
 // adc_log_set_lock_handler() - Set the logger lock handler.
@@ -116,7 +116,7 @@ void adc__log(int level, const char *file, int line, const char *fmt, ...);
 }
 #endif
 
-#endif  // End interface
+#endif // End interface
 
 // Begin Implementation
 
@@ -162,10 +162,14 @@ void adc_log_set_level(int level) { s_logger.level = level; }
 
 int adc_log_add_callback(adc_log_log_handler handler, void *userdata,
                          int level) {
-  if (s_logger.num_callbacks >= ADC_LOG_MAX_CALLBACKS) return -1;
+  if (s_logger.num_callbacks >= ADC_LOG_MAX_CALLBACKS)
+    return -1;
 
-  s_logger.callbacks[s_logger.num_callbacks++] =
-      (adc_log_callback){handler, userdata, level};
+  adc_log_callback cb;
+  cb.handler = handler;
+  cb.userdata = userdata;
+  cb.level = level;
+  s_logger.callbacks[s_logger.num_callbacks++] = cb;
   return 0;
 }
 
@@ -189,15 +193,23 @@ static void init_msg(adc_log_msg *msg, void *userdata) {
 }
 
 static void lock() {
-  if (s_logger.lock_handler) s_logger.lock_handler(1, s_logger.userdata);
+  if (s_logger.lock_handler)
+    s_logger.lock_handler(1, s_logger.userdata);
 }
 
 static void unlock() {
-  if (s_logger.lock_handler) s_logger.lock_handler(0, s_logger.userdata);
+  if (s_logger.lock_handler)
+    s_logger.lock_handler(0, s_logger.userdata);
 }
 
 void adc__log(int level, const char *file, int line, const char *fmt, ...) {
-  adc_log_msg msg = {fmt, file, line, level};
+  adc_log_msg msg;
+  msg.fmt = fmt;
+  msg.file = file;
+  msg.line = line;
+  msg.level = level;
+  msg.time = NULL;
+  msg.userdata = NULL;
 
   lock();
 
@@ -253,4 +265,4 @@ static void stderr_callback(adc_log_msg *msg) {
   fflush(fp);
 }
 
-#endif  // End implementation
+#endif // End implementation

@@ -281,46 +281,48 @@ static void handle_device_write(void *userdata, uint8_t device, uint8_t output) 
   // Play a sound if the bit flag is toggled to 1.
   //
 
-#define on(v, b) (((v) >> (b)) & 1)
+#define on(v, b) (((v) & (1 << (b))) != 0)
 #define off(v, b) !on(v, b)
   else if (device == 3) {
     uint8_t last_write = s_machine.device3_last_write;
-    if (on(output, 0) && off(last_write, 0)) {
-      sound_play(SOUND_UFO, true);
+    if (output != last_write) {
+      if (on(output, 0) && off(last_write, 0)) {
+        sound_play(SOUND_UFO, true);
+      }
+      if (off(output, 0) && on(last_write, 0)) {
+        sound_stop(SOUND_UFO);
+      }
+      if (on(output, 1) && off(last_write, 1)) {
+        sound_play(SOUND_FIRE);
+      }
+      if (on(output, 2) && off(last_write, 2)) {
+        sound_play(SOUND_EXPLOSION);
+      }
+      if (on(output, 3) && off(last_write, 3)) {
+        sound_play(SOUND_INVADER_DIE);
+      }
+      s_machine.device3_last_write = output;
     }
-    if (off(output, 0) && on(last_write, 0)) {
-      sound_stop(SOUND_UFO);
-    }
-    if (on(output, 1) && off(last_write, 1)) {
-      sound_play(SOUND_FIRE);
-    }
-    if (on(output, 2) && off(last_write, 2)) {
-      sound_play(SOUND_EXPLOSION);
-    }
-    if (on(output, 3) && off(last_write, 3)) {
-      sound_play(SOUND_INVADER_DIE);
-    }
-
-    s_machine.device3_last_write = output;
   } else if (device == 5) {
     uint8_t last_write = s_machine.device5_last_write;
-    if (on(output, 0) && off(last_write, 0)) {
-      sound_play(SOUND_FLEET_MOVE_1);
+    if (output != last_write) {
+      if (on(output, 0) && off(last_write, 0)) {
+        sound_play(SOUND_FLEET_MOVE_1);
+      }
+      if (on(output, 1) && off(last_write, 1)) {
+        sound_play(SOUND_FLEET_MOVE_2);
+      }
+      if (on(output, 2) && off(last_write, 2)) {
+        sound_play(SOUND_FLEET_MOVE_3);
+      }
+      if (on(output, 3) && off(last_write, 3)) {
+        sound_play(SOUND_FLEET_MOVE_4);
+      }
+      if (on(output, 4) && off(last_write, 4)) {
+        sound_play(SOUND_UFO_HIT);
+      }
+      s_machine.device5_last_write = output;
     }
-    if (on(output, 1) && off(last_write, 1)) {
-      sound_play(SOUND_FLEET_MOVE_2);
-    }
-    if (on(output, 2) && off(last_write, 2)) {
-      sound_play(SOUND_FLEET_MOVE_3);
-    }
-    if (on(output, 3) && off(last_write, 3)) {
-      sound_play(SOUND_FLEET_MOVE_4);
-    }
-    if (on(output, 4) && off(last_write, 4)) {
-      sound_play(SOUND_UFO_HIT);
-    }
-
-    s_machine.device5_last_write = output;
   }
 #undef on
 #undef off
