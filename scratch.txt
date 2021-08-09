@@ -1,0 +1,7 @@
+TODO:
+- Proper OpenGL error handling
+- Metal renderer
+- Expose types in headers for easier access in files like imgui etc.
+- Shortcut to show UI, options for effects, fullscreen, etc.
+- Multiple display options (no background, etc).
+- Add logging for all resource create/free
