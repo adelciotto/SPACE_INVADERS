@@ -8,10 +8,11 @@
 #include "spinvaders_sound.h"
 
 #define CYCLES_HZ 2000000UL
-#define CYCLES_PER_TICK CYCLES_HZ / 60
-#define CYCLES_PER_SCANLINE CYCLES_PER_TICK / 224
-#define CYCLES_HVBLANK CYCLES_PER_SCANLINE * 112
-#define CYCLES_VBLANK CYCLES_PER_SCANLINE * 224
+#define CYCLES_PER_TICK (CYCLES_HZ / 60)
+// Assuming standard NTSC with 262 scanlines at ~59.94hz
+#define CYCLES_PER_SCANLINE (CYCLES_HZ / 59.94 / 262)
+#define CYCLES_VBLANK_START ((int)(CYCLES_PER_SCANLINE * 38))
+#define CYCLES_VBLANK_END ((int)(CYCLES_PER_SCANLINE * 224))
 
 #define MEMORY_SIZE 0x4000
 #define MEMORY_WORK_RAM_START 0x2000
@@ -29,8 +30,8 @@
 struct Processor {
   adc_8080_cpu cpu;
   uint64_t cycles_this_tick;
-  bool hvblank_triggered;
-  bool vblank_triggered;
+  bool vblank_start_triggered;
+  bool vblank_end_triggered;
 };
 
 struct ShiftRegister {
@@ -84,6 +85,9 @@ static int load_rom(const char *filepath, uint16_t addr);
 //
 
 int machine_setup() {
+  adc_log_info("Machine cycles_per_scanline %f, cycles_vblank_start %d, cycles_vblank_end %d",
+               CYCLES_PER_SCANLINE, CYCLES_VBLANK_START, CYCLES_VBLANK_END);
+
   // Setup the memory and load roms.
   s_machine.memory = (uint8_t *)calloc(MEMORY_SIZE, 1);
   if (!s_machine.memory) {
@@ -149,23 +153,23 @@ void machine_tick(const InputState *input) {
     uint64_t cycles = adc_8080_cpu_step(&processor->cpu);
     processor->cycles_this_tick += cycles;
 
-    // Send cpu the middle and end vblank interrupts.
-    if (processor->cycles_this_tick >= CYCLES_HVBLANK && !processor->hvblank_triggered) {
+    // Send cpu the start and end vblank interrupts.
+    if (processor->cycles_this_tick >= CYCLES_VBLANK_START && !processor->vblank_start_triggered) {
       adc_8080_cpu_interrupt(&processor->cpu, 0xCF);
-      processor->hvblank_triggered = true;
+      processor->vblank_start_triggered = true;
     }
-    if (processor->cycles_this_tick >= CYCLES_VBLANK && !processor->vblank_triggered) {
+    if (processor->cycles_this_tick >= CYCLES_VBLANK_END && !processor->vblank_end_triggered) {
       adc_8080_cpu_interrupt(&processor->cpu, 0xD7);
       handle_vsync();
-      processor->vblank_triggered = true;
+      processor->vblank_end_triggered = true;
     }
   }
   // Adjust the amount of cycles run next tick if we exceeded the maximum.
   if (processor->cycles_this_tick >= CYCLES_PER_TICK) {
     processor->cycles_this_tick -= CYCLES_PER_TICK;
   }
-  processor->hvblank_triggered = false;
-  processor->vblank_triggered = false;
+  processor->vblank_start_triggered = false;
+  processor->vblank_end_triggered = false;
 }
 
 bool machine_paused() {
